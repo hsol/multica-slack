@@ -2,11 +2,21 @@
 
 [Multica](https://github.com/multica-ai/multica) 를 Slack 안에서 다루는 기능 모음. Slack 앱 하나에 Socket Mode 로 붙는 Bolt 프로세스에 기능을 하나씩 얹는다.
 
+![Multica 이슈와 Slack 카드 비교](docs/images/compare-card.png)
+
+카드를 누르면 오른쪽 패널에 설명과 작성자가 나오고, 버튼으로 바로 할당하거나 완료 처리할 수 있다. 연필 아이콘으로 상태, 우선순위, 마감일을 고친다.
+
+<p align="center"><img src="docs/images/slack-detail.png" alt="Slack 상세 패널" width="420"></p>
+
+댓글 탭은 Multica 댓글을 그대로 읽어 와 보여 준다. Slack 쪽에 사본을 따로 두지 않는다.
+
+![Multica 댓글과 Slack 댓글 탭 비교](docs/images/compare-comments.png)
+
 ## 기능
 
 | 기능 | 하는 일 | 문서 |
 |---|---|---|
-| `unfurl` | Multica 이슈 링크를 Slack Work Object 카드로 펼치고, 버튼·패널 편집·댓글 탭을 붙인다 | [docs/unfurl.md](docs/unfurl.md) |
+| `unfurl` | Multica 이슈 링크를 Slack Work Object 카드로 펼치고, 버튼, 패널 편집, 댓글 탭을 붙인다 | [docs/unfurl.md](docs/unfurl.md) |
 
 ## 구조
 
@@ -14,7 +24,7 @@
 src/
   index.js              Bolt 앱 생성, 기능 등록
   lib/
-    multica.js          Multica REST 클라이언트(조회·쓰기, 멤버·에이전트 캐시)
+    multica.js          Multica REST 클라이언트(조회와 쓰기, 멤버와 에이전트 캐시)
     slack-users.js      Slack 유저 ↔ 이메일 조회 캐시
   features/
     unfurl/             기능 하나 = 폴더 하나. index.js 가 register(app, ctx) 를 내보낸다

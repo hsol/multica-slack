@@ -9,6 +9,15 @@ import { listComments, resolveActor, memberByName } from '../../lib/multica.js';
 const SLACK_TAG_RE = /^\[Slack · ([^\]]+)\]\s*/;
 const toEpoch = (iso) => (iso ? Math.floor(Date.parse(iso) / 1000) : undefined);
 
+// Slack 댓글 id 는 26자 미만이어야 한다. Multica 댓글 UUID(36자)를 base64url(22자)로 줄여 보내고,
+// Slack 이 돌려주는 id(thread_root_id 등)는 다시 UUID 로 푼다
+export const toSlackCommentId = (uuid) => Buffer.from(uuid.replace(/-/g, ''), 'hex').toString('base64url');
+export function fromSlackCommentId(id) {
+  if (!id || id.includes('-')) return id;
+  const h = Buffer.from(id, 'base64url').toString('hex');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
 export function commentSummary(comments) {
   const roots = comments.filter((c) => !c.parent_id);
   const latest = comments.reduce((m, c) => Math.max(m, toEpoch(c.created_at) || 0), 0);
@@ -33,8 +42,9 @@ async function sender(comment, lookupSlackUser, nameToMember) {
 
 export async function presentComments({ client, event, issueUrl, lookupSlackUser, member, logger }) {
   const all = await listComments(event.external_ref.id);
-  const scope = event.thread_root_id
-    ? all.filter((c) => c.parent_id === event.thread_root_id)
+  const rootId = fromSlackCommentId(event.thread_root_id);
+  const scope = rootId
+    ? all.filter((c) => c.parent_id === rootId)
     : all.filter((c) => !c.parent_id);
   // Multica 는 오래된 순. 댓글 탭은 최신이 아래로 오는 대화 형태라 그대로 두고, 앞쪽(과거)을 커서로 넘긴다
   const limit = Math.min(Number(event.limit) || 50, 100);
@@ -60,7 +70,7 @@ export async function presentComments({ client, event, issueUrl, lookupSlackUser
         ? all.filter((r) => r.parent_id === c.id).reduce((m, r) => Math.max(m, toEpoch(r.created_at) || 0), 0)
         : undefined;
       return {
-        id: c.id,
+        id: toSlackCommentId(c.id),
         url: `${issueUrl}#comment-${c.id}`,
         timestamp: toEpoch(c.created_at),
         sender: await sender(c, lookupSlackUser, nameToMember),

@@ -1,0 +1,22 @@
+{
+  "_comment": "unfurl 기능이 Slack 앱 manifest 에 요구하는 항목. 기존 scopes/events 는 그대로 두고 이 항목만 더한다. unfurl_domains 는 Multica 웹 주소의 호스트로 바꾼다",
+  "features": {
+    "unfurl_domains": ["multica.example.com"],
+    "rich_previews": {
+      "is_active": true,
+      "entity_types": ["slack#/entities/task"]
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": ["links:read", "links:write", "users:read", "users:read.email", "channels:history", "groups:history"]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "bot_events": ["link_shared", "entity_details_requested", "entity_comments_requested", "message.channels", "message.groups"]
+    },
+    "interactivity": { "is_enabled": true },
+    "socket_mode_enabled": true
+  }
+}

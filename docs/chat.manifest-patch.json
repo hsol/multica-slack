@@ -1,0 +1,22 @@
+{
+  "_comment": "chat 기능이 Slack 앱 manifest 에 요구하는 항목. 기존 scopes/events 는 그대로 두고 이 항목만 더한다",
+  "features": {
+    "app_home": { "messages_tab_enabled": true, "messages_tab_read_only_enabled": false },
+    "slash_commands": [
+      { "command": "/issue", "description": "요청을 Multica 이슈로 만든다", "usage_hint": "[무엇을 할지]", "should_escape": false },
+      { "command": "/new", "description": "새 Multica 채팅을 시작한다(봇 DM)", "should_escape": false },
+      { "command": "/clear", "description": "맥락 없이 새 Multica 채팅으로 바꾼다(봇 DM)", "should_escape": false }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": ["app_mentions:read", "chat:write", "commands", "im:history", "mpim:history", "channels:history", "groups:history", "reactions:write", "users:read", "users:read.email"]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "bot_events": ["app_mention", "message.im"]
+    },
+    "socket_mode_enabled": true
+  }
+}

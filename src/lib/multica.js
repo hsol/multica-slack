@@ -18,7 +18,8 @@ const TOKEN = process.env.MULTICA_TOKEN || cliConfig.token;
 const WORKSPACE_ID = process.env.MULTICA_WORKSPACE_ID || cliConfig.workspace_id;
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
-async function call(method, path, body) {
+// timeoutMs 기본값은 Slack 이벤트 3초 안에 끝내야 하는 조회용이다. 응답을 기다리지 않는 호출(채팅 등)은 늘려 쓴다
+async function call(method, path, body, { timeoutMs = 2500 } = {}) {
   const res = await fetch(SERVER + path, {
     method,
     headers: {
@@ -28,7 +29,7 @@ async function call(method, path, body) {
       ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(2500), // Slack 이벤트 3초 안에 처리
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (method === 'GET' && res.status === 404) return null;
   if (!res.ok) {
@@ -133,6 +134,53 @@ export async function issueStatuses() {
   const list = asList(v, 'statuses').map((s) => ({ key: s.key, name: s.name, category: s.category }));
   statusCache = { at: Date.now(), list };
   return list;
+}
+
+// ---- 채팅 (chat 기능) ----
+// 세션과 메시지는 서비스 토큰 계정 명의로 만들어진다. 실제로 말을 건 사람은 메시지 본문의 멘션으로 남긴다
+
+const SLOW = { timeoutMs: 15000 };
+
+export function createChatSession(agentId) {
+  return call('POST', '/api/chat/sessions', { agent_id: agentId }, SLOW);
+}
+
+// 응답: { message_id, task_id, queued, ... }
+export function sendChatMessage(sessionId, content) {
+  return call('POST', `/api/chat/sessions/${encodeURIComponent(sessionId)}/messages`, { content }, SLOW);
+}
+
+// 세션 전체 메시지(오래된 순, 맨 배열)
+export async function listChatMessages(sessionId) {
+  const v = await call('GET', `/api/chat/sessions/${encodeURIComponent(sessionId)}/messages`, undefined, SLOW);
+  return asList(v, 'messages');
+}
+
+export function createIssue(body) {
+  return call('POST', '/api/issues', body, SLOW);
+}
+
+// 에이전트가 자연어 요청을 읽고 이슈를 만든다(비동기). 응답: { task_id }
+export function quickCreateIssue(body) {
+  return call('POST', '/api/issues/quick-create', body, SLOW);
+}
+
+let slugCache = null;
+export async function workspaceSlug() {
+  if (slugCache) return slugCache;
+  const ws = await call('GET', `/api/workspaces/${encodeURIComponent(WORKSPACE_ID)}`, undefined, SLOW).catch(() => null);
+  slugCache = ws?.slug || null;
+  return slugCache;
+}
+
+export async function issueUrl(identifier) {
+  const slug = await workspaceSlug();
+  return slug && identifier ? `${APP_URL}/${slug}/issues/${identifier}` : null;
+}
+
+// Multica 마크다운 멘션. 이슈 설명·댓글·채팅 본문에 넣으면 그 멤버가 작성자로 남고 알림을 받는다
+export function memberMention(member) {
+  return `[@${member.name}](mention://member/${member.user_id})`;
 }
 
 export const multicaServer = SERVER;

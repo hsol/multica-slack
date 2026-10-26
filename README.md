@@ -17,6 +17,7 @@
 | 기능 | 하는 일 | 문서 |
 |---|---|---|
 | `unfurl` | Multica 이슈 링크를 Slack Work Object 카드로 펼치고, 버튼, 패널 편집, 댓글 탭을 붙인다 | [docs/unfurl.md](docs/unfurl.md) |
+| `chat` | 봇 DM 과 채널 멘션을 Multica 에이전트 채팅으로 잇고, `/issue`, `/new`, `/clear` 를 처리한다. Multica 서버 내장 Slack 연동을 대신한다 | [docs/chat.md](docs/chat.md) |
 
 ## 구조
 
@@ -28,6 +29,7 @@ src/
     slack-users.js      Slack 유저 ↔ 이메일 조회 캐시
   features/
     unfurl/             기능 하나 = 폴더 하나. index.js 가 register(app, ctx) 를 내보낸다
+    chat/               DM·멘션 ↔ Multica 채팅, /issue /new /clear
 scripts/
   unfurl/               기능별 점검 스크립트
 docs/
@@ -79,7 +81,7 @@ docker stop multica-slack             # SIGTERM 을 받아 소켓을 닫고 종�
 
 Slack 앱 하나에 소켓을 여는 프로세스는 이것 하나만 둔다. 로컬 개발 서버, 배포본, 다른 자동화 도구의 Socket Mode 트리거가 같은 앱에 동시에 붙으면 Slack 이 이벤트를 연결들에 나눠 보내 일부가 빠진다. 배포본을 띄울 때는 로컬 개발 서버를 끈다.
 
-Multica 서버의 Slack 연동(채널 기능)에 쓰는 Slack 앱은 Multica 서버가 이미 소켓으로 물고 있다. 그 앱의 토큰을 여기 쓰면 위와 같은 이유로 Multica 쪽 멘션과 DM 이 빠지므로, 이 프로세스에는 별도 Slack 앱을 쓴다.
+Multica 서버의 Slack 연동(채널 기능)도 같은 이유로 이 프로세스와 같은 앱을 쓰면 안 된다. `chat` 기능이 그 연동을 대신하므로, 이 프로세스를 붙이기 전에 Multica 에서 그 앱의 Slack 설치를 끊는다. 순서는 [docs/chat.md](docs/chat.md) 의 "옮겨 올 때" 에 있다.
 
 ## 라이선스
 

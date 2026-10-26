@@ -3,14 +3,16 @@
 //
 // Slack 앱 하나의 Socket Mode 연결은 이 프로세스 하나만 연다.
 // 같은 앱에 소켓을 하나 더 열면 Slack 이 이벤트를 나눠 보내 일부 이벤트가 빠진다.
-// Multica 서버의 Slack 연동에 쓰는 앱(Multica 서버가 물고 있는 앱)의 토큰은 여기 넣지 않는다.
+// chat 기능이 Multica 서버 내장 Slack 연동을 대신하므로, 이 앱을 Multica 서버 Slack 연동에도 걸어 두면 안 된다
+// (Multica 설정에서 그 Slack 설치를 먼저 끊는다. docs/chat.md).
 
 import bolt from '@slack/bolt';
 import { createSlackUsers } from './lib/slack-users.js';
 import * as unfurl from './features/unfurl/index.js';
+import * as chat from './features/chat/index.js';
 import { missingMulticaConfig } from './lib/multica.js';
 
-const FEATURES = [unfurl];
+const FEATURES = [unfurl, chat];
 
 for (const key of ['SLACK_BOT_TOKEN']) {
   if (!process.env[key]) throw new Error(`${key} 가 비어 있다`);

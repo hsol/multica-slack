@@ -2,9 +2,9 @@
 
 Slack 에 Multica 이슈 링크(`https://<multica 웹 주소>/<workspace>/issues/ABC-123`)가 올라오면 Work Object(task) 카드로 펼쳐 준다. 카드를 누르면 오른쪽 flexpane 에 설명, 작성자, 생성 시각과 수정 시각까지 나온다.
 
-## 왜 별도 Slack 앱인가
+## Multica 서버 Slack 연동과 같은 앱을 쓰려면
 
-Multica 서버의 Slack 연동에 쓰는 앱은 Multica 서버가 Socket Mode 로 이미 물고 있다. 같은 앱에 소켓을 하나 더 열면 Slack 이 이벤트를 두 연결 중 한 곳에만 보내기 때문에, 이 프로세스가 받은 멘션과 DM 은 Multica 에 도달하지 못한다. Multica 서버는 `link_shared` 를 처리하지 않으므로 그쪽에 붙일 수도 없다. 그래서 별도 Slack 앱에 붙인다.
+Multica 서버의 Slack 연동은 Socket Mode 로 앱을 물고 있고 `link_shared` 를 처리하지 않는다. 같은 앱에 소켓을 하나 더 열면 Slack 이 이벤트를 두 연결 중 한 곳에만 보내서 멘션과 DM 이 빠진다. 그래서 한 앱에서 둘 다 쓰려면 서버 연동을 끊고 [chat](chat.md) 기능으로 대신한다. 서버 연동을 계속 쓸 거라면 이 프로세스는 별도 Slack 앱에 붙인다.
 
 ## 동작
 
